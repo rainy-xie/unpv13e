@@ -1,6 +1,7 @@
 /* include web1 */
 #include	"unpthread.h"
-#include	<thread.h>		/* Solaris threads */
+// #include	<thread.h>		/* Solaris threads */
+#include <pthread.h> /* POSIX threads */
 
 #define	MAXFILES	20
 #define	SERV		"80"	/* port number or service name */
@@ -65,12 +66,15 @@ main(int argc, char **argv)
 			nlefttoconn--;
 		}
 
-		if ( (n = thr_join(0, &tid, (void **) &fptr)) != 0)
-			errno = n, err_sys("thr_join error");
+		Pthread_join(tid, (void **)&fptr); 
+		if (errno)
+		{
+			err_sys("thr_join error");
+		}
 
 		nconn--;
 		nlefttoread--;
-		printf("thread id %d for %s done\n", tid, fptr->f_name);
+		printf("thread id %ld for %s done\n", tid, fptr->f_name);
 	}
 
 	exit(0);
@@ -89,7 +93,7 @@ do_get_read(void *vptr)
 
 	fd = Tcp_connect(fptr->f_host, SERV);
 	fptr->f_fd = fd;
-	printf("do_get_read for %s, fd %d, thread %d\n",
+	printf("do_get_read for %s, fd %d, thread %ld\n",
 			fptr->f_name, fd, fptr->f_tid);
 
 	write_get_cmd(fptr);	/* write() the GET command */
